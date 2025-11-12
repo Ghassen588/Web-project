@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Trouvez votre stage | StageFinder{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Trouvez votre <span>stage</span></h1>
+    <p>Connectez-vous avec des opportunités de stages. Développez vos compétences, trouvez des mentors et lancez votre carrière.</p>
+    <a href="{{ url_for('main.signup') }}" class="btn btn-primary">Commencer</a>
+</div>
+{% endblock %}

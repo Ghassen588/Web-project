@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StageFinder{% endblock %}</title>
+    <!-- Link to the new external stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Load Google Font 'Inter' -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">StageFinder</a>
+            
+            {% if user %}
+                <!-- Logged-in navigation -->
+                <div class="nav-search">
+                    <input type="search" placeholder="Rechercher...">
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="{{ url_for('main.forum') }}">Forum</a></li>
+                    <li><a href="{{ url_for('main.jobs') }}">Stages</a></li>
+                    <li><a href="{{ url_for('main.applications') }}">Candidatures</a></li>
+                </ul>
+                <ul class="nav-menu nav-right">
+                    <li><a href="#">Notifications</a></li>
+                    <li><a href="{{ url_for('main.my_profile') }}">Mon Profil</a></li>
+                    <li><a href="{{ url_for('main.logout') }}">Déconnexion</a></li>
+                </ul>
+            {% else %}
+                <!-- Logged-out navigation -->
+                <ul class="nav-menu nav-right">
+                    <li><a href="{{ url_for('main.signin') }}">Connexion</a></li>
+                    <li><a href="{{ url_for('main.signup') }}" class="btn btn-primary">Inscription</a></li>
+                </ul>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category|replace('error', 'danger') }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        
+        <!-- Main content block -->
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>

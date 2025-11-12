@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Mes candidatures | StageFinder{% endblock %}
+
+{% block content %}
+    <h2>Mes candidatures</h2>
+
+    {% if user.role.value == 'student' %}
+        <h3>Candidatures envoyées</h3>
+    {% else %}
+        <h3>Candidatures reçues</h3>
+    {% endif %}
+
+    {% for app in applications %}
+        <div class="card">
+            {% if user.role.value == 'student' %}
+                <h4>{{ app.job.title }}</h4>
+                <p>Postulé à: {{ app.job.recruiter.work_place or "Entreprise" }}</p>
+            {% else %}
+                <h4>{{ app.job.title }}</h4>
+                <p>Candidat: {{ app.student.firstname }} {{ app.student.lastname }} ({{ app.student.email }})</p>
+            {% endif %}
+            
+            <p><strong>Status: {{ app.status.value }}</strong></p>
+            <p>Date: {{ app.timestamp.strftime('%Y-%m-%d') }}</p>
+            
+            {% if user.role.value == 'recruiter' and app.status.value == 'pending' %}
+                <!-- TODO: These should be forms or JS buttons -->
+                <a href="#" class="btn">Accepter</a>
+                <a href="#" class="btn btn-secondary">Refuser</a>
+            {% elif user.role.value == 'student' and app.status.value == 'pending' %}
+                 <!-- TODO: This should be a form or JS button -->
+                <a href="#" class="btn btn-secondary">Annuler la candidature</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>Aucune candidature trouvée.</p>
+    {% endfor %}
+{% endblock %}

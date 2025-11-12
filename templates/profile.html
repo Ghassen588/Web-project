@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ user.firstname }} {{ user.lastname }} | StageFinder{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h2>{{ user.firstname }} {{ user.lastname }}</h2>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Rôle:</strong> {{ user.role.value }}</p>
+        
+        <p><strong>Bio:</strong> {{ user.bio or "Pas de biographie." }}</p>
+        <p><strong>Étudie à:</strong> {{ user.study_place or "N/A" }}</p>
+        <p><strong>Travaille à:</strong> {{ user.work_place or "N/A" }}</p>
+        
+        <p><strong>LinkedIn:</strong> <a href="{{ user.linkedin_link }}">{{ user.linkedin_link }}</a></p>
+        <p><strong>GitHub:</strong> <a href="{{ user.github_link }}">{{ user.github_link }}</a></p>
+        
+        {% if user.id == current_user.id %}
+            <a href="{{ url_for('main.settings') }}" class="btn">Modifier le profil</a>
+        {% else %}
+             <!-- TODO: Add follow button -->
+            <a href="#" class="btn">Suivre</a>
+        {% endif %}
+    </div>
+
+    <h3>Posts de {{ user.firstname }}</h3>
+    {% for post in user.posts %}
+     <div class="card">
+            <p>{{ post.content }}</p>
+            <span style="color: #666; font-size: 0.9em;">@ {{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+    {% else %}
+        <p>{{ user.firstname }} n'a encore rien posté.</p>
+    {% endfor %}
+{% endblock %}

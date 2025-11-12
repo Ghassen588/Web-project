@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription | StageFinder{% endblock %}
+
+{% block content %}
+<div class="card auth-card">
+    <h2>Créer un compte</h2>
+    <form action="{{ url_for('main.signup') }}" method="POST">
+        <div class="form-group">
+            <label for="firstname">Prénom</label>
+            <input type="text" id="firstname" name="firstname" required>
+        </div>
+        <div class="form-group">
+            <label for="lastname">Nom</label>
+            <input type="text" id="lastname" name="lastname" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Confirmer le mot de passe</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+        </div>
+        <div class="form-group">
+            <label>Vous êtes :</label>
+            <select name="role" required>
+                <option value="student">Étudiant</option>
+                <option value="recruiter">Recruteur</option>
+            </select>
+        </div>
+        <div class="form-group" style="display: flex; align-items: center;">
+            <input type="checkbox" id="conditions" name="conditions" required style="width: auto; margin-right: 10px;">
+            <label for="conditions" style="margin: 0;">J'accepte les conditions</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Créer un compte</button>
+    </form>
+    <p style="text-align: center; margin-top: 15px;">
+        Vous avez déjà un compte ? <a href="{{ url_for('main.signin') }}">Connectez-vous</a>
+    </p>
+</div>
+{% endblock %}
