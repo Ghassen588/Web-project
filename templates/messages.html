@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Messages | Forstek{% endblock %}
+
+{% block content %}
+<div class="messages-container" style="max-width: 900px; margin: 0 auto;">
+    <h2 style="margin-bottom: 30px;">Messages privés</h2>
+    
+    {% if conversations %}
+        <div class="conversations-list">
+            {% for conv in conversations %}
+                <a href="{{ url_for('main.chat', user_id=conv.user.id) }}" class="conversation-item {% if conv.unread_count > 0 %}unread{% endif %}">
+                    <div class="conversation-header">
+                        <div class="conversation-user">
+                            {% if conv.user.profile_pic_path %}
+                                <img src="{{ url_for('static', filename=conv.user.profile_pic_path) }}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+                            {% else %}
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: bold;">{{ conv.user.firstname[0].upper() }}</div>
+                            {% endif %}
+                            <div style="flex: 1;">
+                                <strong style="color: var(--dark); display: block;">{{ conv.user.firstname }} {{ conv.user.lastname }}</strong>
+                                {% if conv.unread_count > 0 %}
+                                    <span style="font-size: 0.85rem; color: var(--secondary);">{{ conv.unread_count }} non lus</span>
+                                {% endif %}
+                            </div>
+                            {% if conv.unread_count > 0 %}
+                                <span class="unread-badge">{{ conv.unread_count }}</span>
+                            {% endif %}
+                        </div>
+                        <span class="conversation-time">
+                            {% if conv.last_message %}
+                                {{ conv.last_message.timestamp.strftime('%d %b') }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if conv.last_message %}
+                        <div class="conversation-preview">
+                            {{ conv.last_message.content[:70] }}{% if conv.last_message.content|length > 70 %}...{% endif %}
+                        </div>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 60px 20px;">
+            <p style="color: var(--secondary); font-size: 1.1em;">Aucune conversation pour le moment.</p>
+            <p style="margin-top: 20px;">
+                <a href="{{ url_for('main.search') }}" class="btn btn-primary">Commencer une conversation</a>
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

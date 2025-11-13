@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Chat avec {{ other_user.firstname }} {{ other_user.lastname }} | Forstek{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <div>
+            <h2 style="margin: 0;">
+                <a href="{{ url_for('main.profile', user_id=other_user.id) }}" class="author-link" style="color: var(--primary);">
+                    {{ other_user.firstname }} {{ other_user.lastname }}
+                </a>
+            </h2>
+        </div>
+        <a href="{{ url_for('main.messages') }}" class="btn btn-secondary">← Retour</a>
+    </div>
+
+    <div class="messages-display">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {% if message.sender_id == user.id %}sent{% else %}received{% endif %}">
+                    <div class="message-content">
+                        <p>{{ message.content }}</p>
+                        <span class="message-time">{{ message.timestamp.strftime('%H:%M') }}</span>
+                    </div>
+                    
+                    {% if message.liked_by.count() > 0 %}
+                        <div class="message-actions">
+                            <form action="{{ url_for('main.like_message', message_id=message.id) }}" method="POST" style="display:inline; margin: 0;">
+                                <button type="submit" class="message-like-btn" title="Aimer ce message" style="border: none; background: none; padding: 4px;">
+                                    {% if user in message.liked_by %}Aimé{% else %}J'aime{% endif %}
+                                </button>
+                            </form>
+                            <span class="like-count">{{ message.liked_by.count() }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-messages">
+                <p style="color: var(--secondary);">Aucun message dans cette conversation. Dites bonjour 👋</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="message-input-container">
+        <form method="POST" class="message-form">
+            <div class="form-group" style="margin: 0;">
+                <input type="text" name="message" placeholder="Écrivez votre message..." required autofocus>
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

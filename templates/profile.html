@@ -2,42 +2,83 @@
 {% block title %}{{ user.firstname }} {{ user.lastname }} | StageFinder{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <h2>{{ user.firstname }} {{ user.lastname }}</h2>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Rôle:</strong> {{ user.role.value }}</p>
-        
-        <p><strong>Bio:</strong> {{ user.bio or "Pas de biographie." }}</p>
-        <p><strong>Étudie à:</strong> {{ user.study_place or "N/A" }}</p>
-        <p><strong>Travaille à:</strong> {{ user.work_place or "N/A" }}</p>
-        
-        <p><strong>LinkedIn:</strong> <a href="{{ user.linkedin_link }}">{{ user.linkedin_link }}</a></p>
-        <p><strong>GitHub:</strong> <a href="{{ user.github_link }}">{{ user.github_link }}</a></p>
-        
-        <!-- Follower Stats -->
-        <div class="follower-stats">
-            <p><strong>👥 {{ user.followers.count() }} abonnés</strong></p>
-            <p><strong>➡️ {{ user.following.count() }} en train de suivre</strong></p>
-        </div>
-        
-        {% if user.id == current_user.id %}
-            <a href="{{ url_for('main.settings') }}" class="btn">Modifier le profil</a>
-        {% else %}
-            <!-- Follow/Unfollow button -->
-            <form method="POST" action="{{ url_for('main.follow_user', user_id=user.id) }}" style="display:inline;">
-                {% if user in current_user.following %}
-                    <button type="submit" class="btn btn-secondary">Ne plus suivre</button>
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-pic-container">
+                {% if user.profile_pic_path %}
+                    <img src="{{ url_for('static', filename=user.profile_pic_path) }}" alt="Profile picture" class="profile-pic">
                 {% else %}
-                    <button type="submit" class="btn btn-primary">Suivre</button>
+                    <div class="profile-pic-placeholder">{{ user.firstname[0] }}{{ user.lastname[0] }}</div>
                 {% endif %}
-            </form>
-        {% endif %}
+            </div>
+            
+            <div class="profile-info">
+                <h2>{{ user.firstname }} {{ user.lastname }}</h2>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Rôle:</strong> {{ user.role.value }}</p>
+                
+                <p><strong>Bio:</strong> {{ user.bio or "Pas de biographie." }}</p>
+                <p><strong>Étudie à:</strong> {{ user.study_place or "N/A" }}</p>
+                <p><strong>Travaille à:</strong> {{ user.work_place or "N/A" }}</p>
+                
+                <p><strong>LinkedIn:</strong> <a href="{{ user.linkedin_link }}">{{ user.linkedin_link }}</a></p>
+                <p><strong>GitHub:</strong> <a href="{{ user.github_link }}">{{ user.github_link }}</a></p>
+                
+                <!-- Follower Stats -->
+                <div class="follower-stats">
+                    <p><strong>👥 {{ user.followers.count() }} abonnés</strong></p>
+                    <p><strong>➡️ {{ user.following.count() }} en train de suivre</strong></p>
+                </div>
+                
+                {% if user.id == current_user.id %}
+                    <a href="{{ url_for('main.settings') }}" class="btn">Modifier le profil</a>
+                {% else %}
+                    <!-- Follow/Unfollow button -->
+                    <form method="POST" action="{{ url_for('main.follow_user', user_id=user.id) }}" style="display:inline;">
+                        {% if user in current_user.following %}
+                            <button type="submit" class="btn btn-secondary">Ne plus suivre</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-primary">Suivre</button>
+                        {% endif %}
+                    </form>
+                    <!-- Message button -->
+                    <a href="{{ url_for('main.chat', user_id=user.id) }}" class="btn btn-info">💬 Envoyer un message</a>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
     <h3>Posts de {{ user.firstname }}</h3>
     {% for post in user.posts %}
      <div class="card">
             <p>{{ post.content }}</p>
+            
+            <!-- Display attached files -->
+            {% if post.get_file_paths() %}
+                <div class="post-files">
+                    {% for file_path in post.get_file_paths() %}
+                        {% if file_path %}
+                            {% set is_image = file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
+                            {% set is_pdf = file_path.lower().endswith('.pdf') %}
+                            
+                            {% if is_image %}
+                                <div class="post-image">
+                                    <img src="{{ url_for('static', filename=file_path) }}" alt="Post image" class="post-img">
+                                </div>
+                            {% elif is_pdf %}
+                                <div class="post-attachment">
+                                    📄 <a href="{{ url_for('static', filename=file_path) }}" download class="file-link">Télécharger le PDF</a>
+                                </div>
+                            {% else %}
+                                <div class="post-attachment">
+                                    📎 <a href="{{ url_for('static', filename=file_path) }}" download class="file-link">Télécharger le fichier</a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
             <span style="color: #666; font-size: 0.9em;">@ {{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
         </div>
     {% else %}

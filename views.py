@@ -2,12 +2,13 @@ from flask import (
     Blueprint, render_template, request, redirect, url_for, flash, jsonify
 )
 from extensions import db, bcrypt
-from models import User, Post, Comment, Job, Application, UserRole, ApplicationStatus, Notification, NotificationType
+from models import User, Post, Comment, Job, Application, UserRole, ApplicationStatus, Notification, NotificationType, Message
 from flask_jwt_extended import (
     create_access_token, jwt_required, get_jwt_identity,
     set_access_cookies, unset_jwt_cookies
 )
 from models import db, User, Job, Application, JobRating, UserRole
+from file_utils import save_post_file, save_profile_picture, delete_file, is_image_file, is_pdf_file
 from datetime import datetime
 
 main = Blueprint('main', __name__)
@@ -126,14 +127,36 @@ def forum():
     # Create new post
     if request.method == 'POST':
         content = request.form.get('content', '').strip()
-        if content:
-            new_post = Post(content=content, user_id=user.id)
-            db.session.add(new_post)
-            db.session.commit()
-            flash('Post publié avec succès !', 'success')
+        files = request.files.getlist('files')
+        
+        if not content and not files:
+            flash('Veuillez ajouter du contenu ou des fichiers.', 'danger')
             return redirect(url_for('main.forum'))
-        else:
-            flash('Le contenu du post ne peut pas être vide.', 'danger')
+        
+        file_paths = []
+        try:
+            # Save uploaded files
+            for file in files:
+                if file and file.filename != '':
+                    file_path = save_post_file(file)
+                    if file_path:
+                        file_paths.append(file_path)
+        except ValueError as e:
+            flash(f'Erreur lors du téléchargement: {str(e)}', 'danger')
+            return redirect(url_for('main.forum'))
+        except Exception as e:
+            flash(f'Erreur lors du téléchargement: {str(e)}', 'danger')
+            return redirect(url_for('main.forum'))
+        
+        # Create post
+        new_post = Post(content=content, user_id=user.id)
+        if file_paths:
+            new_post.set_file_paths(file_paths)
+        
+        db.session.add(new_post)
+        db.session.commit()
+        flash('Post publié avec succès !', 'success')
+        return redirect(url_for('main.forum'))
 
     posts = Post.query.order_by(Post.timestamp.desc()).all()
     return render_template('forum.html', posts=posts, user=user)
@@ -330,6 +353,24 @@ def settings():
         user.work_place = request.form.get('work_place', user.work_place)
         user.linkedin_link = request.form.get('linkedin_link', user.linkedin_link)
         user.github_link = request.form.get('github_link', user.github_link)
+        
+        # Handle profile picture upload
+        if 'profile_pic' in request.files:
+            file = request.files['profile_pic']
+            if file and file.filename != '':
+                try:
+                    # Delete old profile picture if exists
+                    if user.profile_pic_path:
+                        delete_file(user.profile_pic_path)
+                    
+                    # Save new profile picture
+                    profile_pic_path = save_profile_picture(file, user.id)
+                    user.profile_pic_path = profile_pic_path
+                    flash('Photo de profil mise à jour.', 'success')
+                except ValueError as e:
+                    flash(f'Erreur: {str(e)}', 'danger')
+                except Exception as e:
+                    flash(f'Erreur lors du téléchargement: {str(e)}', 'danger')
 
         try:
             db.session.commit()
@@ -470,3 +511,122 @@ def refuse_application(app_id):
     
     flash(f"Candidature de {application.student.firstname} {application.student.lastname} refusée.", "info")
     return redirect(url_for('main.applications'))
+
+
+# ------------------- MESSAGING -------------------
+@main.route('/messages')
+@jwt_required()
+def messages():
+    """Display list of all conversations"""
+    current_user = get_current_user()
+    
+    # Get all users that current user has messaged or been messaged by
+    sent_to = db.session.query(Message.recipient_id).filter(Message.sender_id == current_user.id).distinct()
+    received_from = db.session.query(Message.sender_id).filter(Message.recipient_id == current_user.id).distinct()
+    
+    conversation_user_ids = set()
+    for row in sent_to:
+        conversation_user_ids.add(row[0])
+    for row in received_from:
+        conversation_user_ids.add(row[0])
+    
+    # Get the actual user objects
+    conversations = []
+    for user_id in conversation_user_ids:
+        user = User.query.get(user_id)
+        # Get the last message in conversation
+        last_message = Message.query.filter(
+            ((Message.sender_id == current_user.id) & (Message.recipient_id == user_id)) |
+            ((Message.sender_id == user_id) & (Message.recipient_id == current_user.id))
+        ).order_by(Message.timestamp.desc()).first()
+        
+        # Count unread messages
+        unread_count = Message.query.filter(
+            Message.sender_id == user_id,
+            Message.recipient_id == current_user.id,
+            Message.is_read == False
+        ).count()
+        
+        conversations.append({
+            'user': user,
+            'last_message': last_message,
+            'unread_count': unread_count
+        })
+    
+    # Sort by last message timestamp
+    conversations.sort(key=lambda x: x['last_message'].timestamp if x['last_message'] else datetime.min, reverse=True)
+    
+    return render_template('messages.html', conversations=conversations, user=current_user)
+
+
+@main.route('/chat/<int:user_id>', methods=['GET', 'POST'])
+@jwt_required()
+def chat(user_id):
+    """Display chat with specific user"""
+    current_user = get_current_user()
+    other_user = User.query.get_or_404(user_id)
+    
+    # Prevent messaging yourself
+    if current_user.id == user_id:
+        flash("Vous ne pouvez pas vous envoyer un message à vous-même.", "danger")
+        return redirect(url_for('main.messages'))
+    
+    # Handle message sending
+    if request.method == 'POST':
+        content = request.form.get('message', '').strip()
+        if content:
+            new_message = Message(
+                content=content,
+                sender_id=current_user.id,
+                recipient_id=other_user.id
+            )
+            db.session.add(new_message)
+            db.session.commit()
+            flash('Message envoyé.', 'success')
+            return redirect(url_for('main.chat', user_id=user_id))
+        else:
+            flash('Le message ne peut pas être vide.', 'danger')
+    
+    # Get all messages between these two users, ordered by timestamp
+    message_objects = Message.query.filter(
+        ((Message.sender_id == current_user.id) & (Message.recipient_id == other_user.id)) |
+        ((Message.sender_id == other_user.id) & (Message.recipient_id == current_user.id))
+    ).order_by(Message.timestamp.asc()).all()
+    
+    # Mark received messages as read
+    unread_messages = Message.query.filter(
+        Message.sender_id == other_user.id,
+        Message.recipient_id == current_user.id,
+        Message.is_read == False
+    ).all()
+    for msg in unread_messages:
+        msg.is_read = True
+    db.session.commit()
+    
+    return render_template('chat.html', other_user=other_user, messages=message_objects, user=current_user)
+
+
+@main.route('/message/<int:message_id>/like', methods=['POST'])
+@jwt_required()
+def like_message(message_id):
+    """Like/unlike a message"""
+    current_user = get_current_user()
+    message = Message.query.get_or_404(message_id)
+    
+    # Check if user is sender or recipient of the message
+    if message.sender_id != current_user.id and message.recipient_id != current_user.id:
+        flash("Vous n'avez pas accès à ce message.", "danger")
+        return redirect(url_for('main.messages'))
+    
+    if current_user in message.liked_by:
+        message.liked_by.remove(current_user)
+    else:
+        message.liked_by.append(current_user)
+    
+    db.session.commit()
+    
+    # Determine which chat to return to
+    if message.sender_id == current_user.id:
+        return redirect(url_for('main.chat', user_id=message.recipient_id))
+    else:
+        return redirect(url_for('main.chat', user_id=message.sender_id))

@@ -22,6 +22,12 @@ class NotificationType(enum.Enum):
 
 # --- Association Tables (for Many-to-Many) ---
 
+# Association table for message likes
+message_likes = db.Table('message_likes',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('message_id', db.Integer, db.ForeignKey('message.id'), primary_key=True)
+)
+
 # Association table for followers
 followers = db.Table('followers',
     db.Column('follower_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
@@ -63,6 +69,7 @@ class User(db.Model):
     work_place = db.Column(db.String(150), nullable=True)
     linkedin_link = db.Column(db.String(200), nullable=True)
     github_link = db.Column(db.String(200), nullable=True)
+    profile_pic_path = db.Column(db.String(300), nullable=True)
     
     # Relationships
     posts = db.relationship('Post', back_populates='author', lazy='dynamic', cascade="all, delete-orphan")
@@ -103,11 +110,25 @@ class Post(db.Model):
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    file_paths = db.Column(db.Text, nullable=True)  # Store as comma-separated paths
     
     author = db.relationship('User', back_populates='posts')
     comments = db.relationship('Comment', back_populates='post', lazy='dynamic', cascade="all, delete-orphan")
     liked_by = db.relationship('User', secondary=post_likes,
                                back_populates='liked_posts', lazy='dynamic')
+    
+    def get_file_paths(self):
+        """Return list of file paths from comma-separated string"""
+        if self.file_paths:
+            return [path.strip() for path in self.file_paths.split(',')]
+        return []
+    
+    def set_file_paths(self, paths):
+        """Store file paths as comma-separated string"""
+        if paths:
+            self.file_paths = ','.join(paths)
+        else:
+            self.file_paths = None
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -180,3 +201,17 @@ class Notification(db.Model):
     comment = db.relationship('Comment')
     job = db.relationship('Job')
     application = db.relationship('Application')
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
+    is_read = db.Column(db.Boolean, default=False)
+    
+    # Relationships
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')
+    liked_by = db.relationship('User', secondary=message_likes,
+                               backref='liked_messages', lazy='dynamic')
