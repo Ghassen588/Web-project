@@ -20,16 +20,27 @@
             
             {% if user %}
                 <!-- Logged-in navigation -->
-                <div class="nav-search">
-                    <input type="search" placeholder="Rechercher...">
-                </div>
+                <form action="{{ url_for('main.search') }}" method="GET" class="nav-search-form">
+                    <input type="search" name="q" placeholder="Rechercher utilisateurs ou offres..." required>
+                    <button type="submit" class="search-btn">🔍</button>
+                </form>
                 <ul class="nav-menu">
                     <li><a href="{{ url_for('main.forum') }}">Forum</a></li>
                     <li><a href="{{ url_for('main.jobs') }}">Stages</a></li>
                     <li><a href="{{ url_for('main.applications') }}">Candidatures</a></li>
                 </ul>
                 <ul class="nav-menu nav-right">
-                    <li><a href="#">Notifications</a></li>
+                    <li>
+                        <a href="{{ url_for('main.notifications') }}">
+                            Notifications
+                            {% if user %}
+                                {% set unread_count = user.notifications | selectattr('is_read', 'equalto', False) | list | length %}
+                                {% if unread_count > 0 %}
+                                    <span class="notification-badge">{{ unread_count }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </a>
+                    </li>
                     <li><a href="{{ url_for('main.my_profile') }}">Mon Profil</a></li>
                     <li><a href="{{ url_for('main.logout') }}">Déconnexion</a></li>
                 </ul>

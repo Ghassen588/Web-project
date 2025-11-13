@@ -14,11 +14,23 @@
         <p><strong>LinkedIn:</strong> <a href="{{ user.linkedin_link }}">{{ user.linkedin_link }}</a></p>
         <p><strong>GitHub:</strong> <a href="{{ user.github_link }}">{{ user.github_link }}</a></p>
         
+        <!-- Follower Stats -->
+        <div class="follower-stats">
+            <p><strong>👥 {{ user.followers.count() }} abonnés</strong></p>
+            <p><strong>➡️ {{ user.following.count() }} en train de suivre</strong></p>
+        </div>
+        
         {% if user.id == current_user.id %}
             <a href="{{ url_for('main.settings') }}" class="btn">Modifier le profil</a>
         {% else %}
-             <!-- TODO: Add follow button -->
-            <a href="#" class="btn">Suivre</a>
+            <!-- Follow/Unfollow button -->
+            <form method="POST" action="{{ url_for('main.follow_user', user_id=user.id) }}" style="display:inline;">
+                {% if user in current_user.following %}
+                    <button type="submit" class="btn btn-secondary">Ne plus suivre</button>
+                {% else %}
+                    <button type="submit" class="btn btn-primary">Suivre</button>
+                {% endif %}
+            </form>
         {% endif %}
     </div>
 

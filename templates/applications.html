@@ -17,19 +17,35 @@
                 <p>Postulé à: {{ app.job.recruiter.work_place or "Entreprise" }}</p>
             {% else %}
                 <h4>{{ app.job.title }}</h4>
-                <p>Candidat: {{ app.student.firstname }} {{ app.student.lastname }} ({{ app.student.email }})</p>
+                <p>Candidat: <a href="{{ url_for('main.profile', user_id=app.student.id) }}" class="author-link">{{ app.student.firstname }} {{ app.student.lastname }}</a> ({{ app.student.email }})</p>
             {% endif %}
             
-            <p><strong>Status: {{ app.status.value }}</strong></p>
+            <p><strong>Status: 
+                {% if app.status.value == 'pending' %}
+                    <span class="status-badge pending">En attente</span>
+                {% elif app.status.value == 'accepted' %}
+                    <span class="status-badge accepted">✅ Acceptée</span>
+                {% else %}
+                    <span class="status-badge refused">❌ Refusée</span>
+                {% endif %}
+            </strong></p>
             <p>Date: {{ app.timestamp.strftime('%Y-%m-%d') }}</p>
             
             {% if user.role.value == 'recruiter' and app.status.value == 'pending' %}
-                <!-- TODO: These should be forms or JS buttons -->
-                <a href="#" class="btn">Accepter</a>
-                <a href="#" class="btn btn-secondary">Refuser</a>
+                <div class="action-buttons">
+                    <form method="POST" action="{{ url_for('main.accept_application', app_id=app.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-primary">✅ Accepter</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('main.refuse_application', app_id=app.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-secondary">❌ Refuser</button>
+                    </form>
+                </div>
             {% elif user.role.value == 'student' and app.status.value == 'pending' %}
-                 <!-- TODO: This should be a form or JS button -->
-                <a href="#" class="btn btn-secondary">Annuler la candidature</a>
+                <div class="action-buttons">
+                    <form method="POST" action="{{ url_for('main.apply_job', job_id=app.job.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-secondary">Annuler la candidature</button>
+                    </form>
+                </div>
             {% endif %}
         </div>
     {% else %}

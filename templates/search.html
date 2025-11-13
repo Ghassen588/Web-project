@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Résultats de recherche | StageFinder{% endblock %}
+
+{% block content %}
+<div class="search-page">
+    <h2>Résultats de recherche</h2>
+    
+    {% if query %}
+        <p class="search-query">Résultats pour: <strong>"{{ query }}"</strong></p>
+    {% else %}
+        <p>Veuillez entrer un terme de recherche.</p>
+    {% endif %}
+
+    <!-- Filter buttons -->
+    <div class="search-filters">
+        <a href="{{ url_for('main.search', q=query, type='all') }}" 
+           class="filter-btn {% if search_type == 'all' %}active{% endif %}">Tous</a>
+        <a href="{{ url_for('main.search', q=query, type='users') }}" 
+           class="filter-btn {% if search_type == 'users' %}active{% endif %}">Utilisateurs</a>
+        <a href="{{ url_for('main.search', q=query, type='jobs') }}" 
+           class="filter-btn {% if search_type == 'jobs' %}active{% endif %}">Offres</a>
+    </div>
+
+    <!-- Users Results -->
+    {% if users %}
+        <h3>Utilisateurs ({{ users|length }})</h3>
+        <div class="search-results">
+            {% for user in users %}
+                <div class="card user-card">
+                    <h4><a href="{{ url_for('main.profile', user_id=user.id) }}">{{ user.firstname }} {{ user.lastname }}</a></h4>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Rôle:</strong> {{ user.role.value }}</p>
+                    <p><strong>Bio:</strong> {{ user.bio or "N/A" }}</p>
+                    
+                    <div class="user-stats">
+                        <span class="stat">👥 {{ user.followers.count() }} abonnés</span>
+                    </div>
+
+                    {% if user.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('main.follow_user', user_id=user.id) }}" style="display:inline;">
+                            {% if user in current_user.following %}
+                                <button type="submit" class="btn btn-secondary">Ne plus suivre</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-primary">Suivre</button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('main.profile', user_id=user.id) }}" class="btn">Voir le profil</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Jobs Results -->
+    {% if jobs %}
+        <h3>Offres d'emploi ({{ jobs|length }})</h3>
+        <div class="search-results">
+            {% for job in jobs %}
+                <div class="card job-card">
+                    <h4>{{ job.title }}</h4>
+                    <p>{{ job.description[:150] }}...</p>
+                    <p><strong>Lieu:</strong> {{ job.location or 'Non spécifié' }}</p>
+                    <p><strong>Salaire:</strong> {{ job.salary or 'Non spécifié' }}</p>
+                    <p><strong>Type:</strong> {{ 'Télétravail' if job.is_remote else 'Sur site' }}</p>
+                    <p><small>Posté par {{ job.recruiter.firstname }} {{ job.recruiter.lastname }}</small></p>
+
+                    {% if current_user.role.name == 'STUDENT' %}
+                        <form method="POST" action="{{ url_for('main.apply_job', job_id=job.id) }}" style="display:inline;">
+                            <button type="submit" class="btn">Postuler</button>
+                        </form>
+                    {% endif %}
+
+                    {% set ratings = job.ratings.all() %}
+                    {% if ratings %}
+                        {% set avg = (ratings | map(attribute='stars') | sum) / ratings|length %}
+                        <p><strong>⭐ {{ '%.1f' % avg }} / 5</strong> ({{ ratings|length }} votes)</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- No results -->
+    {% if query and not users and not jobs %}
+        <div class="card">
+            <p>Aucun résultat trouvé pour "{{ query }}".</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

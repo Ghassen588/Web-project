@@ -17,7 +17,7 @@
 <h3>Fil d'actualité</h3>
 {% for post in posts %}
     <div class="card">
-        <strong>{{ post.author.firstname }} {{ post.author.lastname }}</strong>
+        <strong><a href="{{ url_for('main.profile', user_id=post.author.id) }}" class="author-link">{{ post.author.firstname }} {{ post.author.lastname }}</a></strong>
         <span style="color: #666; font-size: 0.9em;">@ {{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
         <p>{{ post.content }}</p>
 
@@ -41,7 +41,7 @@
             {% for comment in post.comments.all()|reverse %}
 
                 <div style="margin-left: 20px; margin-top: 5px;">
-                    <strong>{{ comment.author.firstname }}</strong>:
+                    <strong><a href="{{ url_for('main.profile', user_id=comment.author.id) }}" class="author-link">{{ comment.author.firstname }} {{ comment.author.lastname }}</a></strong>:
                     {{ comment.content }}
                     <br>
                     <small style="color:gray;">{{ comment.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>

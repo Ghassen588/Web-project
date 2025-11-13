@@ -12,6 +12,14 @@ class ApplicationStatus(enum.Enum):
     ACCEPTED = "accepted"
     REFUSED = "refused"
 
+class NotificationType(enum.Enum):
+    FOLLOW = "follow"
+    POST_LIKE = "post_like"
+    POST_COMMENT = "post_comment"
+    JOB_APPLICATION = "job_application"
+    APPLICATION_ACCEPTED = "application_accepted"
+    APPLICATION_REFUSED = "application_refused"
+
 # --- Association Tables (for Many-to-Many) ---
 
 # Association table for followers
@@ -150,3 +158,25 @@ class JobRating(db.Model):
     
     # Ensure a user can only rate a job once
     __table_args__ = (db.UniqueConstraint('user_id', 'job_id', name='_user_job_uc'),)
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    notification_type = db.Column(db.Enum(NotificationType), nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    timestamp = db.Column(db.DateTime, index=True, default=lambda: datetime.now(timezone.utc))
+    
+    # Optional references to related objects
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=True)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
+    job_id = db.Column(db.Integer, db.ForeignKey('job.id'), nullable=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=True)
+    
+    # Relationships
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='notifications')
+    sender = db.relationship('User', foreign_keys=[sender_id])
+    post = db.relationship('Post')
+    comment = db.relationship('Comment')
+    job = db.relationship('Job')
+    application = db.relationship('Application')

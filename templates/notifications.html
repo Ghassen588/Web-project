@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Notifications | StageFinder{% endblock %}
+
+{% block content %}
+<h2>Notifications</h2>
+
+{% if notifications %}
+    <div class="notifications-list">
+        {% for notif in notifications %}
+            <div class="card notification-card {% if not notif.is_read %}unread{% endif %}">
+                {% if notif.notification_type.value == 'follow' %}
+                    <div class="notification-content">
+                        <strong>
+                            <a href="{{ url_for('main.profile', user_id=notif.sender_id) }}">
+                                {{ notif.sender.firstname }} {{ notif.sender.lastname }}
+                            </a>
+                        </strong> vous suit maintenant.
+                    </div>
+                
+                {% elif notif.notification_type.value == 'post_like' %}
+                    <div class="notification-content">
+                        <strong>
+                            <a href="{{ url_for('main.profile', user_id=notif.sender_id) }}">
+                                {{ notif.sender.firstname }} {{ notif.sender.lastname }}
+                            </a>
+                        </strong> a aimé votre post.
+                        {% if notif.post %}
+                            <a href="{{ url_for('main.forum') }}" class="notification-link">Voir le post</a>
+                        {% endif %}
+                    </div>
+                
+                {% elif notif.notification_type.value == 'post_comment' %}
+                    <div class="notification-content">
+                        <strong>
+                            <a href="{{ url_for('main.profile', user_id=notif.sender_id) }}">
+                                {{ notif.sender.firstname }} {{ notif.sender.lastname }}
+                            </a>
+                        </strong> a commenté votre post.
+                        {% if notif.comment %}
+                            <p class="comment-preview"><em>"{{ notif.comment.content[:100] }}"</em></p>
+                            <a href="{{ url_for('main.forum') }}" class="notification-link">Voir le commentaire</a>
+                        {% endif %}
+                    </div>
+                
+                {% elif notif.notification_type.value == 'job_application' %}
+                    <div class="notification-content">
+                        <strong>
+                            <a href="{{ url_for('main.profile', user_id=notif.sender_id) }}">
+                                {{ notif.sender.firstname }} {{ notif.sender.lastname }}
+                            </a>
+                        </strong> a postulé pour votre offre
+                        {% if notif.job %}
+                            "<strong>{{ notif.job.title }}</strong>".
+                            <a href="{{ url_for('main.applications') }}" class="notification-link">Voir les candidatures</a>
+                        {% endif %}
+                    </div>
+                
+                {% elif notif.notification_type.value == 'application_accepted' %}
+                    <div class="notification-content notification-success">
+                        <strong>✅ Candidature acceptée</strong>
+                        {% if notif.job %}
+                            pour l'offre "<strong>{{ notif.job.title }}</strong>" chez {{ notif.job.recruiter.work_place or "l'entreprise" }}.
+                        {% endif %}
+                        <a href="{{ url_for('main.applications') }}" class="notification-link">Voir les détails</a>
+                    </div>
+                
+                {% elif notif.notification_type.value == 'application_refused' %}
+                    <div class="notification-content notification-danger">
+                        <strong>❌ Candidature refusée</strong>
+                        {% if notif.job %}
+                            pour l'offre "<strong>{{ notif.job.title }}</strong>" chez {{ notif.job.recruiter.work_place or "l'entreprise" }}.
+                        {% endif %}
+                        <a href="{{ url_for('main.applications') }}" class="notification-link">Voir les détails</a>
+                    </div>
+                {% endif %}
+                
+                <span class="notification-time">{{ notif.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card">
+        <p>Aucune notification pour le moment.</p>
+    </div>
+{% endif %}
+{% endblock %}
