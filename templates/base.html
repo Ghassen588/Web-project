@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}StageFinder{% endblock %}</title>
+    <title>{% block title %}Forstek{% endblock %}</title>
     <!-- Link to the new external stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <!-- Load Google Font 'Inter' -->
@@ -14,9 +14,18 @@
     {% block head %}{% endblock %}
 </head>
 <body>
+    <script>
+        // Dark/Light Theme Toggle
+        (function() {
+            const theme = localStorage.getItem('forstek-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-logo">StageFinder</a>
+            <a href="/" class="nav-logo">Forstek</a>
             
             {% if user %}
                 <!-- Logged-in navigation -->
@@ -28,7 +37,7 @@
                     <li><a href="{{ url_for('main.forum') }}">Forum</a></li>
                     <li><a href="{{ url_for('main.jobs') }}">Stages</a></li>
                     <li><a href="{{ url_for('main.applications') }}">Candidatures</a></li>
-                    <li><a href="{{ url_for('main.messages') }}">💬 Messages</a></li>
+                    <li><a href="{{ url_for('main.messages') }}">Messages</a></li>
                 </ul>
                 <ul class="nav-menu nav-right">
                     <li>
@@ -70,6 +79,34 @@
         <!-- Main content block -->
         {% block content %}{% endblock %}
     </div>
+
+    <!-- Footer with Theme Toggle -->
+    <footer style="padding: 20px; text-align: center; color: var(--secondary); border-top: 1px solid var(--light-gray); margin-top: auto;">
+        <button id="theme-toggle" style="background: none; border: none; color: var(--secondary); cursor: pointer; padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.9rem; transition: var(--transition-fast); font-family: var(--font-family);">
+            <span id="theme-icon">🌙</span> Mode sombre
+        </button>
+        <script>
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            
+            function updateThemeButton() {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                themeIcon.textContent = isDark ? '☀️' : '🌙';
+                themeToggle.textContent = (isDark ? '☀️ ' : '🌙 ') + (isDark ? 'Mode clair' : 'Mode sombre');
+            }
+            
+            updateThemeButton();
+            
+            themeToggle.addEventListener('click', function() {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                const newTheme = isDark ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('forstek-theme', newTheme);
+                updateThemeButton();
+            });
+        </script>
+        <p style="margin-top: 12px; font-size: 0.85rem;">© 2025 Forstek. Tous droits réservés.</p>
+    </footer>
 
 </body>
 </html>

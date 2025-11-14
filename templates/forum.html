@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Forum | StageFinder{% endblock %}
+{% block title %}Forum | Forstek{% endblock %}
 
 {% block content %}
 <h2>Forum</h2>
@@ -11,11 +11,17 @@
             <textarea name="content" placeholder="Exprimez-vous, {{ user.firstname }}..." required></textarea>
         </div>
         <div class="form-group">
-            <label for="files">Ajouter des images ou des PDFs (optionnel)</label>
-            <input type="file" id="files" name="files" multiple accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx">
-            <small>Formats acceptés: PNG, JPG, JPEG, GIF, PDF, DOC, DOCX (Max 10MB par fichier)</small>
+            <input type="file" id="files" name="files" multiple accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx" style="display: none;">
+            <label for="files" class="btn btn-secondary">Upload Files</label>
+            <span id="file-names" style="color: var(--secondary); font-size: 0.9rem; margin-left: 10px;"></span>
         </div>
-        <button type="submit" class="btn">Publier</button>
+        <script>
+            document.getElementById('files').addEventListener('change', function() {
+                const names = Array.from(this.files).map(f => f.name).join(', ');
+                document.getElementById('file-names').textContent = names ? 'Files: ' + names : '';
+            });
+        </script>
+        <button type="submit" class="btn btn-primary">Publier</button>
     </form>
 </div>
 
@@ -40,11 +46,11 @@
                             </div>
                         {% elif is_pdf %}
                             <div class="post-attachment">
-                                📄 <a href="{{ url_for('static', filename=file_path) }}" download class="file-link">Télécharger le PDF</a>
+                                <span style="color: var(--primary); font-weight: 600;">PDF</span> <a href="{{ url_for('static', filename=file_path) }}" download class="file-link">Télécharger</a>
                             </div>
                         {% else %}
                             <div class="post-attachment">
-                                📎 <a href="{{ url_for('static', filename=file_path) }}" download class="file-link">Télécharger le fichier</a>
+                                <span style="color: var(--primary); font-weight: 600;">Document</span> <a href="{{ url_for('static', filename=file_path) }}" download class="file-link">Télécharger</a>
                             </div>
                         {% endif %}
                     {% endif %}
@@ -53,40 +59,42 @@
         {% endif %}
 
         <!-- LIKE SECTION -->
-        <form action="{{ url_for('main.like_post', post_id=post.id) }}" method="POST" style="display:inline;">
-            <button type="submit" style="border:none; background:none; cursor:pointer;">
-                {% if user in post.liked_by %}
-                    ❤️
-                {% else %}
-                    🤍
-                {% endif %}
-            </button>
-            <span>{{ post.liked_by.count() }}</span>
-        </form>
+        <div class="post-actions">
+            <form action="{{ url_for('main.like_post', post_id=post.id) }}" method="POST" style="display:inline;">
+                <button type="submit" class="post-action like-btn {% if user in post.liked_by %}liked{% endif %}" style="border: none; background: none; padding: 6px 12px;">
+                    <span>{% if user in post.liked_by %}❤{% else %}🤍{% endif %}</span>
+                    <span>{{ post.liked_by.count() }}</span>
+                </button>
+            </form>
+        </div>
 
         <!-- COMMENTS SECTION -->
-        <details style="margin-top:10px;">
-            <summary>💬 Commentaires ({{ post.comments.count() }})</summary>
-
+        <div class="comments-section">
+            <h5 style="margin: 16px 0 12px 0;">Commentaires ({{ post.comments.count() }})</h5>
+            
             <!-- List existing comments -->
-            {% for comment in post.comments.all()|reverse %}
-
-                <div style="margin-left: 20px; margin-top: 5px;">
-                    <strong><a href="{{ url_for('main.profile', user_id=comment.author.id) }}" class="author-link">{{ comment.author.firstname }} {{ comment.author.lastname }}</a></strong>:
-                    {{ comment.content }}
-                    <br>
-                    <small style="color:gray;">{{ comment.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+            {% if post.comments.count() > 0 %}
+                <div class="comments-list">
+                    {% for comment in post.comments.all()|reverse %}
+                        <div class="comment-item">
+                            <div class="comment-author">
+                                <strong><a href="{{ url_for('main.profile', user_id=comment.author.id) }}" class="author-link">{{ comment.author.firstname }} {{ comment.author.lastname }}</a></strong>
+                            </div>
+                            <div class="comment-content">{{ comment.content }}</div>
+                            <div class="comment-time">{{ comment.timestamp.strftime('%d %b à %H:%M') }}</div>
+                        </div>
+                    {% endfor %}
                 </div>
             {% else %}
-                <p style="margin-left: 20px; color: gray;">Aucun commentaire pour ce post.</p>
-            {% endfor %}
+                <p style="color: var(--secondary); font-size: 0.9rem; margin-bottom: 16px;">Aucun commentaire pour ce post.</p>
+            {% endif %}
 
             <!-- Add new comment -->
-            <form action="{{ url_for('main.comment_post', post_id=post.id) }}" method="POST" style="margin-left: 20px; margin-top: 10px;">
-                <input type="text" name="comment" placeholder="Votre commentaire..." required>
-                <button type="submit">💬 Publier</button>
+            <form action="{{ url_for('main.comment_post', post_id=post.id) }}" method="POST" class="comment-form">
+                <input type="text" name="comment" placeholder="Ajouter un commentaire..." required class="comment-input">
+                <button type="submit" class="btn btn-sm btn-primary">Publier</button>
             </form>
-        </details>
+        </div>
     </div>
 {% else %}
     <p>Le forum est vide. Soyez le premier à publier !</p>
