@@ -108,5 +108,133 @@
         <p style="margin-top: 12px; font-size: 0.85rem;">© 2025 Forstek. Tous droits réservés.</p>
     </footer>
 
+    <!-- AJAX form submission to prevent page refresh -->
+    <script>
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        const action = form.getAttribute('action') || '';
+        const isMessageForm = form.classList.contains('message-form');
+        
+        // Check if this is an action that should use AJAX
+        const isAjaxAction = action.includes('/like/') || 
+                             action.includes('/comment/') || 
+                             action.includes('/apply/') || 
+                             action.includes('/follow/') ||
+                             isMessageForm;
+        
+        if (!isAjaxAction) return;
+        
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const actionUrl = action || window.location.href; // Use current URL for message form
+        
+        fetch(actionUrl, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            // Handle UI updates based on action type
+            if (action.includes('/like/')) {
+                // Update like button
+                const btn = form.querySelector('.like-btn');
+                if (btn) {
+                    const heart = btn.querySelector('span:first-child');
+                    const count = btn.querySelector('span:last-child');
+                    if (btn.classList.contains('liked')) {
+                        btn.classList.remove('liked');
+                        heart.textContent = '🤍';
+                        count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+                    } else {
+                        btn.classList.add('liked');
+                        heart.textContent = '❤';
+                        count.textContent = parseInt(count.textContent) + 1;
+                    }
+                }
+            } 
+            else if (action.includes('/comment/')) {
+                // Add comment to list
+                const comment = formData.get('comment');
+                const card = form.closest('.card');
+                if (card && comment) {
+                    let list = card.querySelector('.comments-list');
+                    if (!list) {
+                        list = document.createElement('div');
+                        list.className = 'comments-list';
+                        form.parentElement.insertBefore(list, form);
+                    }
+                    
+                    const item = document.createElement('div');
+                    item.className = 'comment-item';
+                    item.innerHTML = '<div class="comment-author"><strong>Vous</strong></div>' +
+                                     '<div class="comment-content">' + comment + '</div>' +
+                                     '<div class="comment-time">À l\'instant</div>';
+                    list.prepend(item);
+                    
+                    form.querySelector('input[name="comment"]').value = '';
+                    
+                    // Update count
+                    const h5 = card.querySelector('h5');
+                    if (h5) {
+                        const match = h5.textContent.match(/\((\d+)\)/);
+                        if (match) {
+                            h5.textContent = h5.textContent.replace(/\(\d+\)/, '(' + (parseInt(match[1]) + 1) + ')');
+                        }
+                    }
+                }
+            }
+            else if (action.includes('/apply/')) {
+                // Disable apply button
+                const btn = form.querySelector('button');
+                if (btn) {
+                    btn.textContent = 'Candidature envoyée';
+                    btn.disabled = true;
+                }
+            }
+            else if (action.includes('/follow/')) {
+                // Toggle follow button
+                const btn = form.querySelector('button');
+                if (btn) {
+                    if (btn.textContent.includes('Suivre')) {
+                        if (!btn.textContent.includes('Ne plus')) {
+                            btn.textContent = 'Ne plus suivre';
+                        } else {
+                            btn.textContent = 'Suivre';
+                        }
+                    }
+                }
+            }
+            else if (isMessageForm) {
+                // Handle message sending
+                const input = form.querySelector('input[name="message"]');
+                const messageText = input.value;
+                if (messageText) {
+                    // Create and add the message to the display
+                    const container = document.querySelector('.messages-display');
+                    if (container) {
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = 'message sent';
+                        msgDiv.innerHTML = '<div class="message-content">' +
+                                          '<p>' + messageText + '</p>' +
+                                          '<span class="message-time">À l\'instant</span>' +
+                                          '</div>';
+                        container.appendChild(msgDiv);
+                        container.scrollTop = container.scrollHeight;
+                    }
+                    // Clear input
+                    input.value = '';
+                    input.focus();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }, true);
+    </script>
+
 </body>
 </html>

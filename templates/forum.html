@@ -61,7 +61,7 @@
         <!-- LIKE SECTION -->
         <div class="post-actions">
             <form action="{{ url_for('main.like_post', post_id=post.id) }}" method="POST" style="display:inline;">
-                <button type="submit" class="post-action like-btn {% if user in post.liked_by %}liked{% endif %}" style="border: none; background: none; padding: 6px 12px;">
+                <button type="submit" class="post-action like-btn {% if user in post.liked_by %}liked{% endif %}" style="border: none; background: none; padding: 6px 12px; cursor: pointer;">
                     <span>{% if user in post.liked_by %}❤{% else %}🤍{% endif %}</span>
                     <span>{{ post.liked_by.count() }}</span>
                 </button>
