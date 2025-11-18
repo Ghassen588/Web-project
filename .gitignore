@@ -4,5 +4,5 @@ venv/
 *.db
 instance/
 .env
-profile-pics/
-uploads/
+static/profile_pics/
+static/uploads/
