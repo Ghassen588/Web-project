@@ -1,0 +1,254 @@
+:root {
+  /* Brand Colors (LinkedIn-inspired) */
+  --primary: #0a66c2;
+  --primary-hover: #004182;
+  --bg-body: #f3f2ef;
+  --bg-card: #ffffff;
+  --text-main: #191919;
+  --text-sub: #666666;
+  --border: #e0e0e0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  
+  /* Status Colors */
+  --success: #057642;
+  --danger: #cc1016;
+  --warning: #f5c344;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+/* --- LAYOUT --- */
+.page-container {
+  max-width: 1128px;
+  margin: 24px auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --- NAVBAR --- */
+.navbar {
+  background-color: var(--bg-card);
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border);
+  justify-content: space-between;
+}
+
+.logo {
+  color: var(--primary);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-right: 20px;
+}
+
+.search-bar input {
+  background: #eef3f8;
+  border: none;
+  height: 34px;
+  padding: 0 40px 0 15px;
+  border-radius: 4px;
+  width: 280px;
+  transition: width 0.3s;
+  font-size: 14px;
+}
+.search-bar input:focus {
+  width: 350px;
+  outline: 2px solid var(--primary);
+}
+
+.links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.links a {
+  color: var(--text-sub);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.links a:hover, .links a.active {
+  color: var(--text-main);
+}
+
+/* --- CARDS & SURFACES --- */
+.card {
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 16px; /* Reduced padding for tighter look */
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+/* --- BUTTONS --- */
+button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 24px; /* Pill shape */
+  padding: 8px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: var(--primary-hover);
+}
+
+button.secondary {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+
+button.secondary:hover {
+  background: #ebf4fd;
+}
+
+/* --- FORMS & INPUTS --- */
+input, textarea, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--text-sub);
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  transition: border 0.2s;
+}
+
+input:focus, textarea:focus {
+  border-color: var(--primary);
+  outline: 1px solid var(--primary);
+}
+
+/* --- TYPOGRAPHY UTILS --- */
+h1, h2, h3 { margin-top: 0; color: rgba(0,0,0,0.9); }
+small { color: var(--text-sub); }
+a { color: var(--primary); text-decoration: none; font-weight: 600; }
+a:hover { text-decoration: underline; }
+
+/* --- SPECIFIC COMPONENTS --- */
+
+/* Auth Pages */
+.auth-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-align: center;
+}
+
+/* Job Cards */
+.job-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+.job-card h3 { color: var(--primary); margin-bottom: 4px; }
+.job-card .company { font-weight: bold; color: var(--text-main); }
+.job-card span { font-size: 0.9rem; color: var(--text-sub); }
+
+/* Post Cards */
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.post-image {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  margin-top: 10px;
+}
+.post-actions {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 15px;
+}
+.post-actions button {
+  background: transparent;
+  color: var(--text-sub);
+  padding: 8px;
+}
+.post-actions button:hover {
+  background: #f0f0f0;
+  color: var(--text-main);
+}
+
+/* Profile Header */
+.profile-page { align-items: center; }
+.profile-header {
+  text-align: center;
+  width: 100%;
+  max-width: 700px;
+  padding: 30px;
+}
+.avatar-circle {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #0a66c2, #004182);
+  color: white;
+  font-size: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  border: 4px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.badge {
+  background: #eef3f8;
+  color: var(--text-sub);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.status-badge.Pending { background: #ffeebb; color: #8a6d00; }
+.status-badge.Accepted { background: #d4edda; color: var(--success); }
+.status-badge.Refused { background: #f8d7da; color: var(--danger); }

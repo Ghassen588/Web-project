@@ -1,0 +1,45 @@
+# --- General ---
+.DS_Store
+.vscode/
+*.log
+*.sqlite3
+
+# --- Backend (Python/Flask) ---
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+
+# Virtual Environments
+backend/venv/
+backend/env/
+backend/.venv/
+
+# Environment Variables (Secrets)
+backend/.env
+
+# Database
+backend/*.db
+backend/instance/
+
+# File Uploads (Ignore the files, but keep the folder structure if you want)
+backend/static/uploads/*
+!backend/static/uploads/.gitkeep
+
+# --- Frontend (React/Node) ---
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/coverage/
+
+# Frontend Environment Variables
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
